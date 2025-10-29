@@ -1,0 +1,18 @@
+{
+  "name": "vector-search-demo",
+  "version": "1.0.0",
+  "description": "Beautiful real estate vector search demo for SQL Server 2025",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["vector-search", "sql-server", "real-estate", "semantic-search"],
+  "author": "Joe Sack",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mssql": "^10.0.1",
+    "cors": "^2.8.5"
+  }
+}

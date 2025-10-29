@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.py
+test_*.ps1
+test_*.png
+*_test.py
+*.png
+
+# Documentation drafts
+*_SUMMARY.md
+*_PLAN.md
+*_OVERVIEW.md
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Misc
+.env
+*.log
+server.js
+screenshots/
