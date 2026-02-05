@@ -876,9 +876,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/@google/generative-ai@0.1.3/dist/index.mjs" type="module"></script>
     <script type="module">
-        import { GoogleGenerativeAI } from 'https://unpkg.com/@google/generative-ai@0.1.3/dist/index.mjs';
 
         let map;
         let markers = [];
@@ -1136,38 +1134,25 @@
         }
 
         async function generatePropertyImages(properties) {
-            const apiKey = '***REMOVED***';
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-
             for (const prop of properties) {
                 try {
-                    const prompt = `Create a photorealistic image of this property: ${prop.listing_description}. Style: ${prop.style}, Location: ${prop.city}, Minnesota. High quality, professional real estate photography, natural lighting, exterior view.`;
+                    const response = await fetch('/api/generate-property-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            property_id: prop.property_id,
+                            description: prop.listing_description,
+                            property_type: prop.style,
+                            address: `${prop.city}, Minnesota`
+                        })
+                    });
 
-                    const result = await model.generateContent([prompt]);
-                    const response = await result.response;
-
-                    if (response.candidates && response.candidates[0].content.parts) {
-                        const imagePart = response.candidates[0].content.parts.find(part => part.inlineData);
-                        if (imagePart) {
-                            const imageData = imagePart.inlineData.data;
-                            const mimeType = imagePart.inlineData.mimeType;
-
-                            await fetch('/api/save_image', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    property_id: prop.property_id,
-                                    image_data: imageData,
-                                    mime_type: mimeType
-                                })
-                            });
-
-                            const imgElement = document.querySelector(`img[src="/images/properties/property_${prop.property_id}.png"]`);
-                            if (imgElement) {
-                                imgElement.src = `/images/properties/property_${prop.property_id}.png?t=${Date.now()}`;
-                                imgElement.style.display = 'block';
-                            }
+                    const result = await response.json();
+                    if (result.success) {
+                        const imgElement = document.querySelector(`img[src="/images/properties/property_${prop.property_id}.png"]`);
+                        if (imgElement) {
+                            imgElement.src = `${result.image_url}?t=${Date.now()}`;
+                            imgElement.style.display = 'block';
                         }
                     }
                 } catch (error) {
