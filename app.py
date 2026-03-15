@@ -285,14 +285,22 @@ def search_properties():
         conn = get_db_connection(server, database)
         cursor = conn.cursor()
 
-        # Build WHERE clause
-        where_clause = 'p.description_vector IS NOT NULL'
+        # Build WHERE clause with parameterized values
+        where_conditions = ['p.description_vector IS NOT NULL']
+        params = []
         if price_min:
-            where_clause += f' AND p.list_price >= {price_min}'
+            where_conditions.append('p.list_price >= ?')
+            params.append(price_min)
         if price_max:
-            where_clause += f' AND p.list_price <= {price_max}'
+            where_conditions.append('p.list_price <= ?')
+            params.append(price_max)
         if bedrooms:
-            where_clause += f' AND p.bedrooms = {bedrooms}'
+            where_conditions.append('p.bedrooms = ?')
+            params.append(bedrooms)
+        where_clause = ' AND '.join(where_conditions)
+
+        # Sanitize top_n to integer
+        top_n = int(top_n)
 
         if use_custom_embedding and custom_embedding:
             # Use the provided custom embedding
@@ -312,10 +320,10 @@ def search_properties():
 
             search_vector_str = row.search_vector
 
-        # Perform vector search using the vector string directly
+        # Perform vector search using parameterized query
         search_query = f"""
             DECLARE @search_vector VECTOR(1536);
-            SET @search_vector = CAST('{search_vector_str}' AS VECTOR(1536));
+            SET @search_vector = CAST(? AS VECTOR(1536));
 
             SELECT TOP {top_n}
                 p.property_id,
@@ -338,7 +346,7 @@ def search_properties():
             ORDER BY VECTOR_DISTANCE('cosine', p.description_vector, @search_vector);
         """
 
-        cursor.execute(search_query)
+        cursor.execute(search_query, [search_vector_str] + params)
         rows = cursor.fetchall()
 
         results = []
